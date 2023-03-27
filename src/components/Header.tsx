@@ -1,16 +1,20 @@
 import { Link, useMatch } from "react-router-dom";
 import styled from "styled-components";
-import { motion } from "framer-motion";
+import {
+  motion,
+  useAnimation,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
 import { useState } from "react";
 
-const Nav = styled.nav`
+const Nav = styled(motion.nav)`
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: fixed;
   top: 0;
   width: 100%;
-  background-color: black;
   font-size: 14px;
   padding: 20px 60px;
   color: white;
@@ -72,10 +76,18 @@ const Circle = styled(motion.span)`
   border-radius: 50%;
   background-color: ${(props) => props.theme.red};
 `;
+
 const Input = styled(motion.input)`
   position: absolute;
+  right: 0px;
+  padding: 5px 10px;
+  padding-left: 40px;
+  font-size: 16px;
+  color: white;
+  background-color: transparent;
+  border: 1px solid ${(props) => props.theme.white.lighter};
   transform-origin: right center;
-  left: -150px;
+  z-index: -1;
 `;
 
 const logoVariants = {
@@ -90,15 +102,51 @@ const logoVariants = {
   },
 };
 
+const navVariants = {
+  top: {
+    backgroundColor: "rgba(0,0,0,0)",
+  },
+  scroll: {
+    backgroundColor: "rgba(0,0,0,1)",
+  },
+};
 function Header() {
-  const [serachOpen, setSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const homeMatch = useMatch("/");
   const tvMatch = useMatch("tv");
+  const inputAnimation = useAnimation();
+  const navAnimation = useAnimation();
 
-  const toggleSearch = () => setSearchOpen((prev) => !prev);
+  const { scrollY } = useScroll();
 
+  const toggleSearch = () => {
+    if (searchOpen) {
+      // trigger the close animation
+      inputAnimation.start({
+        scaleX: 0,
+      });
+    } else {
+      // trigger the open animation
+      inputAnimation.start({
+        scaleX: 1,
+      });
+    }
+    setSearchOpen((prev) => !prev);
+  };
+
+  // useMotionValueEvent(scrollY, "change", (latest) => {
+  //   console.log(latest);
+  // });
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 80) {
+      navAnimation.start("scroll");
+    } else {
+      navAnimation.start("top");
+    }
+  });
   return (
-    <Nav>
+    <Nav variants={navVariants} animate={navAnimation} initial="top">
       <Col>
         <Logo
           variants={logoVariants}
@@ -126,7 +174,7 @@ function Header() {
         <Search>
           <motion.svg
             onClick={toggleSearch}
-            animate={{ x: serachOpen ? -180 : 0 }}
+            animate={{ x: searchOpen ? -195 : 0 }}
             transition={{ type: "linear" }}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -139,8 +187,9 @@ function Header() {
             ></path>
           </motion.svg>
           <Input
+            animate={inputAnimation}
+            initial={{ scaleX: 0 }}
             transition={{ type: "linear" }}
-            animate={{ scaleX: serachOpen ? 1 : 0 }}
             placeholder="Search for movie or tv show"
           />
         </Search>
