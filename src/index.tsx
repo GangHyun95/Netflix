@@ -63,13 +63,16 @@ table {
 body {
   font-weight: 300;
   font-family: 'Source Sans Pro', sans-serif;
+  color:black;
   line-height: 1.2;
+  
 }
 a {
   text-decoration:none;
   color:inherit;
 }
 `;
+
 root.render(
   <RecoilRoot>
     <ThemeProvider theme={theme}>
